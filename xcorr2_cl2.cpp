@@ -2,11 +2,24 @@
  * xcorr2_cl.cpp -- robust ArrayFire (CUDA / OpenCL / CPU) frequency-domain
  * cross-correlation for InSAR SLC image registration (GMTSAR-GPU xcorr2).
  *
+ * Based on the MIT-licensed xcorr2_cl implementation developed by
+ * Hao Cui and Xianjie Zha:
+ * https://github.com/cuihaoleo/gmtsar_optimize
+ * Reference:
+ * Cui, H., & Zha, X. (2018). Parallel Image Registration Implementations for GMTSAR Package. Seismological Research
+ * Letters, 89(3), 1129-1136.
+ * https://doi.org/10.1785/0220170171
+ *
+ * Robustness modifications are maintained in this fork:
+ * https://github.com/ichaochao9/gmtsar_optimize_robust
+ *
  * Drop-in replacement for the original xcorr2_cl.cpp: same CLI, same output
  * file "freq_xcorr.dat", same record format
  *     " %d %6.3lf %d %6.3lf %6.2lf \n"  (loc_x, xoff, loc_y, yoff, max_corr).
  *
- * CHANGELOG (robustness rewrite, see SPEC.md):
+ * SPDX-License-Identifier: MIT
+ *
+ * CHANGELOG (robustness rewrite):
  *   FIX1: Slave SLC is read with its own line width s_nx (the original code
  *         used m_nx). load_slc_rows() now uses 64-bit byte offsets, clamps
  *         start_row >= 0, derives the number of available rows from the file
@@ -227,7 +240,7 @@ int main(int argc, char **argv) {
 
     FILE *fout = fopen(xcorr.o_name, "w");
     if (!fout) {
-        perror("xcorr2_cl: failed to open freq_xcorr.dat");
+        perror("xcorr2_cl2: failed to open out file");
         return 1;
     }
 
