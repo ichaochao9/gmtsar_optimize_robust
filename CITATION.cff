@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use xcorr2_cl2, please cite the original Cui and Zha (2018) article."
+title: "Robust ArrayFire xcorr2 for GMTSAR (xcorr2_cl2)"
+type: software
+authors:
+  - family-names: "Cui"
+    given-names: "Hao"
+  - family-names: "Zha"
+    given-names: "Xianjie"
+repository-code: "https://github.com/ichaochao9/gmtsar_optimize_robust"
+license: "MIT"
+
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Cui"
+      given-names: "Hao"
+    - family-names: "Zha"
+      given-names: "Xianjie"
+  title: "Parallel Image Registration Implementations for GMTSAR Package"
+  journal: "Seismological Research Letters"
+  year: 2018
+  volume: 89
+  issue: 3
+  start: 1129
+  end: 1136
+  doi: "10.1785/0220170171"
