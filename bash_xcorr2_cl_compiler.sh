@@ -4,7 +4,14 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-AF_PATH="${AF_PATH:-/home/wafeng/soft/insar/GMTSAR/arrayfirev3.8.3/build/install}"
+if [[ -z "${AF_PATH:-}" ]]; then
+    echo "Error: AF_PATH is not set." >&2
+    echo "Set it to the ArrayFire installation directory before building." >&2
+    echo >&2
+    echo "Example:" >&2
+    echo "  AF_PATH=/opt/arrayfire bash bash_xcorr2_cl_compiler.sh" >&2
+    exit 1
+fi
 
 for command_name in gcc g++ pkg-config; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
