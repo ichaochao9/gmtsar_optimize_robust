@@ -33,11 +33,6 @@ The build script targets Linux systems with an ArrayFire installation
 containing `libaf.so`. It has not yet been systematically validated with every
 SAR sensor, ArrayFire version, or CUDA/OpenCL device.
 
-Users should compare the resulting offsets with a trusted GMTSAR workflow
-before using the program for production processing.
-
-No precompiled binary or test SLC data are included.
-
 ## Requirements
 
 - Linux
@@ -115,8 +110,6 @@ Example:
   -ysearch 64 \
   -nx 32 \
   -ny 64 \
-  -range_interp 2 \
-  -interp 16
 ```
 
 Other ArrayFire backends may be selected with:
