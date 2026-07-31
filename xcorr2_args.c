@@ -27,7 +27,7 @@ void apply_args(const struct st_xcorr_args *args, struct st_xcorr *xc) {
     double prf[2];
 	if (args->x0 || args->x1 || args->y0 || args->y1) {
         fprintf(stderr,
-                "xcorr2_cl2: -x0/-x1/-y0/-y1 are not implemented in this release\n");
+                "xcorr2_cl2: -x0/-x1/-y0/-y1 belong to a separate region-selection version\n");
         exit(EXIT_FAILURE);
     }
     struct prm_handler m_prm = prm_open(args->m_prm);
@@ -129,11 +129,9 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
         "  -ysearch ys            Azimuth search-window size [default: 64]\n"
         "  -interp factor         Correlation interpolation factor [default: 16]\n"
         "  -af backend            ArrayFire backend: cuda, opencl, or cpu\n"
-        "  -help                  Show this help message\n\n"
-        "The -x0/-x1/-y0/-y1 region options are not implemented in this release.\n"
         "Use fitoffset.csh to convert the output to PRM format.\n\n"
         "Example:\n"
-        "  xcorr2_cl2 master.PRM slave.PRM output.dat -af cuda\n";
+        "  xcorr2_cl2 master.PRM slave.PRM output.dat -af opencl -xsearch 32 -ysearch 256 -nx 32 -ny 128\n";
 
     static struct option long_options[] = {
         { "noshift", no_argument, NULL, OPT_NO_SHIFT },
