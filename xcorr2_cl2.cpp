@@ -243,7 +243,7 @@ int main(int argc, char **argv) {
 
     FILE *fout = fopen(xcorr.o_name, "w");
     if (!fout) {
-        perror("xcorr2_cl2: failed to open out file");
+        perror("xcorr2_cl2: failed to open output file");
         return 1;
     }
 
