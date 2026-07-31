@@ -3,3 +3,13 @@ a.out
 xcorr2
 xcorr2_af
 .ycm_extra_conf.py
+
+# Local xcorr2_cl2 build products and test data
+xcorr2_cl2
+freq_xcorr*.dat
+build/
+*.SLC
+*.slc
+*.backup*
+*.deb
+.DS_Store
