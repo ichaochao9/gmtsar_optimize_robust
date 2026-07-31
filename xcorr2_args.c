@@ -25,6 +25,11 @@ void strtrim(char *s) {
 void apply_args(const struct st_xcorr_args *args, struct st_xcorr *xc) {
     int num_patches, num_valid_az;
     double prf[2];
+	if (args->x0 || args->x1 || args->y0 || args->y1) {
+        fprintf(stderr,
+                "xcorr2_cl2: -x0/-x1/-y0/-y1 are not implemented in this release\n");
+        exit(EXIT_FAILURE);
+    }
     struct prm_handler m_prm = prm_open(args->m_prm);
     struct prm_handler s_prm = prm_open(args->s_prm);
     //
@@ -105,29 +110,30 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
         OPT_HELP = -100,
     };
 
-    static const char *help = \
-        "xcorr [GMT5SAR] - Compute 2-D cross-correlation of two images\n\n\n"
-        "Usage: xcorr master.PRM slave.PRM freq_xcorr.dat [-nx n] [-ny n] [-xsearch xs] [-ysearch ys]\n"
-        "master.PRM             PRM file for reference image\n"
-        "slave.PRM              PRM file of secondary image\n"
-        "freq_xcorr.dat         an ascii file for offsets output,  while freq_time.dat is suggested if -time is given \n"
-	"-noshift               ignore ashift and rshift in prm file (set to 0)\n"
-        "-nx  nx                number of locations in x (range) direction (int)\n"
-        "-ny  ny                number of locations in y (azimuth) direction (int)\n"
-	"-x0  1                 start pixel index in range, 1 in default\n"
-	"-x1  1                 end pixel index in range, <width of data> in default\n"
-	"-y0  1                 start pixel index in azimuth, 1 in default\n"
-        "-y1  1                 end pixel index in azimuth, <width of data> in default\n"
-        "-nointerp              do not interpolate correlation function\n"
-        "-range_interp ri       interpolate range by ri (power of two) [default: 2]\n"
-        "-norange               do not range interpolate \n"
-        "-xsearch xs            search window size in x (range) direction (int power of 2 [32 64 128 256])\n"
-        "-ysearch ys            search window size in y (azimuth) direction (int power of 2 [32 64 128 256])\n"
-        "-interp  factor        interpolate correlation function by factor (int) [default, 16]\n"
-        "-af [cuda|opencl|cpu]  ArrayFire accelerate backend \n"
-        "\nuse fitoffset.csh to convert output to PRM format\n"
-        "\nExample:\n"
-        "xcorr IMG-HH-ALPSRP075880660-H1.0__A.PRM IMG-HH-ALPSRP129560660-H1.0__A.PRM output.dat -x0 100 -x1 200 -y0 200 -y1 100\n";
+    static const char *help =
+        "xcorr2_cl2 - robust ArrayFire-based 2-D cross-correlation for GMTSAR\n\n"
+        "Usage:\n"
+        "  xcorr2_cl2 master.PRM slave.PRM output.dat [options]\n\n"
+        "Arguments:\n"
+        "  master.PRM             PRM file for the reference image\n"
+        "  slave.PRM              PRM file for the secondary image\n"
+        "  output.dat             ASCII output file containing offsets\n\n"
+        "Options:\n"
+        "  -noshift               Ignore ashift and rshift in the PRM file\n"
+        "  -nx n                  Number of locations in range [default: 16]\n"
+        "  -ny n                  Number of locations in azimuth [default: 32]\n"
+        "  -nointerp              Disable sub-pixel correlation interpolation\n"
+        "  -range_interp ri       Range interpolation factor [default: 2]\n"
+        "  -norange               Disable range interpolation\n"
+        "  -xsearch xs            Range search-window size [default: 64]\n"
+        "  -ysearch ys            Azimuth search-window size [default: 64]\n"
+        "  -interp factor         Correlation interpolation factor [default: 16]\n"
+        "  -af backend            ArrayFire backend: cuda, opencl, or cpu\n"
+        "  -help                  Show this help message\n\n"
+        "The -x0/-x1/-y0/-y1 region options are not implemented in this release.\n"
+        "Use fitoffset.csh to convert the output to PRM format.\n\n"
+        "Example:\n"
+        "  xcorr2_cl2 master.PRM slave.PRM output.dat -af cuda\n";
 
     static struct option long_options[] = {
         { "noshift", no_argument, NULL, OPT_NO_SHIFT },
@@ -251,7 +257,7 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
     if (optind < argc)
         xa->outname = argv[optind++];
     else {
-        fprintf(stderr, "PRM file of master not specified\n");
+        fprintf(stderr, "Output file not specified\n");
         exit(-1);
     }
 
