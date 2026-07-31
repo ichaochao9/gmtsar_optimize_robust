@@ -134,7 +134,7 @@ or:
 Display the program help with:
 
 ```bash
-./xcorr2_cl2 -help
+./xcorr2_cl2
 ```
 
 ## Output
@@ -154,11 +154,6 @@ The source-code output format is:
 The output can subsequently be processed using the appropriate GMTSAR offset
 fitting workflow, such as `fitoffset.csh`.
 
-## Known limitation
-
-The region-selection options `-x0`, `-x1`, `-y0`, and `-y1` are not implemented
-in this preview release. They are explicitly rejected instead of being silently
-ignored.
 
 ## Attribution and citation
 
