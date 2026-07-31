@@ -173,8 +173,6 @@ Original project:
 
 - https://github.com/cuihaoleo/gmtsar_optimize
 
-Please cite Cui and Zha (2018) when using this implementation in academic work.
-
 This repository is an independent research fork and is not an official GMTSAR
 release.
 
