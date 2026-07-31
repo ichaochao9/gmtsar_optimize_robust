@@ -13,9 +13,11 @@ struct st_xcorr {
     int ri;
     int interp_factor;
     int n2x, n2y;  // high-res correlation window
+    int x0, x1, y0, y1; // boundaries for estimation...
 
     char *m_path;
     char *s_path;
+    char *o_name;
 };
 
 enum enum_xcorr_af_device {
@@ -28,7 +30,9 @@ enum enum_xcorr_af_device {
 struct st_xcorr_args {
     const char *m_prm;
     const char *s_prm;
-
+    char *outname;
+    //
+    int x0, y0, x1, y1;
     int nx, ny;
     int xsearch, ysearch;
     int range_interp;

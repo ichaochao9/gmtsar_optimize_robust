@@ -27,7 +27,12 @@ void apply_args(const struct st_xcorr_args *args, struct st_xcorr *xc) {
     double prf[2];
     struct prm_handler m_prm = prm_open(args->m_prm);
     struct prm_handler s_prm = prm_open(args->s_prm);
-
+    //
+    //
+    //
+    xc->o_name = args->outname;
+    strtrim(xc->o_name);
+    //
     xc->m_path = strdup(prm_get_str(m_prm, "SLC_file"));
     strtrim(xc->m_path);
     xc->s_path = strdup(prm_get_str(s_prm, "SLC_file"));
@@ -55,7 +60,13 @@ void apply_args(const struct st_xcorr_args *args, struct st_xcorr *xc) {
 
     xc->xsearch = args->xsearch ? args->xsearch : 64;
     xc->ysearch = args->ysearch ? args->ysearch : 64;
-
+    //
+    xc->x0 = args->x0 ? args->x0 : 1;
+    xc->x1 = args->x1 ? args->x1 : xc->m_nx;
+    xc->y0 = args->y0 ? args->y0 : 1;
+    xc->y1 = args->y1 ? args->y1 : xc->m_ny;
+    //
+    //
     xc->nxl = args->nx ? args->nx : 16;
     xc->nyl = args->ny ? args->ny : 32;
 
@@ -77,7 +88,11 @@ void apply_args(const struct st_xcorr_args *args, struct st_xcorr *xc) {
 
 void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
     enum {
-        OPT_NX = 10,
+        OPT_X0 = 1,
+	OPT_X1 = 13,
+	OPT_Y0 = 11,
+	OPT_Y1 = 12,
+	OPT_NX = 10,
         OPT_NY = 20,
         OPT_RANGE_INTERP = 30,
         OPT_XSEARCH = 40,
@@ -92,12 +107,17 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
 
     static const char *help = \
         "xcorr [GMT5SAR] - Compute 2-D cross-correlation of two images\n\n\n"
-        "Usage: xcorr master.PRM slave.PRM [-nx n] [-ny n] [-xsearch xs] [-ysearch ys]\n"
+        "Usage: xcorr master.PRM slave.PRM freq_xcorr.dat [-nx n] [-ny n] [-xsearch xs] [-ysearch ys]\n"
         "master.PRM             PRM file for reference image\n"
         "slave.PRM              PRM file of secondary image\n"
-        "-noshift               ignore ashift and rshift in prm file (set to 0)\n"
+        "freq_xcorr.dat         an ascii file for offsets output,  while freq_time.dat is suggested if -time is given \n"
+	"-noshift               ignore ashift and rshift in prm file (set to 0)\n"
         "-nx  nx                number of locations in x (range) direction (int)\n"
         "-ny  ny                number of locations in y (azimuth) direction (int)\n"
+	"-x0  1                 start pixel index in range, 1 in default\n"
+	"-x1  1                 end pixel index in range, <width of data> in default\n"
+	"-y0  1                 start pixel index in azimuth, 1 in default\n"
+        "-y1  1                 end pixel index in azimuth, <width of data> in default\n"
         "-nointerp              do not interpolate correlation function\n"
         "-range_interp ri       interpolate range by ri (power of two) [default: 2]\n"
         "-norange               do not range interpolate \n"
@@ -105,13 +125,16 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
         "-ysearch ys            search window size in y (azimuth) direction (int power of 2 [32 64 128 256])\n"
         "-interp  factor        interpolate correlation function by factor (int) [default, 16]\n"
         "-af [cuda|opencl|cpu]  ArrayFire accelerate backend \n"
-        "output: \n freq_xcorr.dat (default) \n time_xcorr.dat (if -time option))\n"
         "\nuse fitoffset.csh to convert output to PRM format\n"
         "\nExample:\n"
-        "xcorr IMG-HH-ALPSRP075880660-H1.0__A.PRM IMG-HH-ALPSRP129560660-H1.0__A.PRM -nx 20 -ny 50 \n";
+        "xcorr IMG-HH-ALPSRP075880660-H1.0__A.PRM IMG-HH-ALPSRP129560660-H1.0__A.PRM output.dat -x0 100 -x1 200 -y0 200 -y1 100\n";
 
     static struct option long_options[] = {
         { "noshift", no_argument, NULL, OPT_NO_SHIFT },
+	{ "x0", required_argument, NULL, OPT_X0 },
+        { "x1", required_argument, NULL, OPT_X1 },
+	{ "y0", required_argument, NULL, OPT_Y0 },
+        { "y1", required_argument, NULL, OPT_Y1 },
         { "nx", required_argument, NULL, OPT_NX },
         { "ny", required_argument, NULL, OPT_NY },
         { "nointerp", no_argument, NULL, OPT_NOINTERP },
@@ -148,13 +171,26 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
         }
 
         switch (opt) {
-            case OPT_NX:
+            //
+	    case OPT_X0:
+                xa->x0 = int_arg;
+                break;
+	    case OPT_X1:
+                xa->x1 = int_arg;
+                break;
+	    case OPT_Y0:
+                xa->y0 = int_arg;
+                break;
+            case OPT_Y1:
+                xa->y1 = int_arg;
+                break;
+	    case OPT_NX:
                 xa->nx = int_arg;
                 break;
             case OPT_NY:
                 xa->ny = int_arg;
                 break;
-            case OPT_XSEARCH:
+	    case OPT_XSEARCH:
                 xa->xsearch = int_arg;
                 break;
             case OPT_YSEARCH:
@@ -208,4 +244,15 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
         fprintf(stderr, "PRM file of slave not specified\n");
         exit(-1);
     }
+    //
+    //
+    // new parameter given by Wanpeng Feng, @SYSU, 2024/05/02
+    //
+    if (optind < argc)
+        xa->outname = argv[optind++];
+    else {
+        fprintf(stderr, "PRM file of master not specified\n");
+        exit(-1);
+    }
+
 }
