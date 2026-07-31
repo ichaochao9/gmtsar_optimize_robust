@@ -1,5 +1,5 @@
 /*
- * xcorr2_cl.cpp -- robust ArrayFire (CUDA / OpenCL / CPU) frequency-domain
+ * xcorr2_cl2.cpp -- robust ArrayFire (CUDA / OpenCL / CPU) frequency-domain
  * cross-correlation for InSAR SLC image registration (GMTSAR-GPU xcorr2).
  *
  * Based on the MIT-licensed xcorr2_cl implementation developed by
@@ -13,9 +13,12 @@
  * Robustness modifications are maintained in this fork:
  * https://github.com/ichaochao9/gmtsar_optimize_robust
  *
- * Drop-in replacement for the original xcorr2_cl.cpp: same CLI, same output
- * file "freq_xcorr.dat", same record format
- *     " %d %6.3lf %d %6.3lf %6.2lf \n"  (loc_x, xoff, loc_y, yoff, max_corr).
+ * Usage:
+ *   xcorr2_cl2 master.PRM slave.PRM output.dat [options]
+ *
+ * Output record format:
+ *   " %d %6.3lf %d %6.3lf %6.2lf \n"
+ *   (loc_x, xoff, loc_y, yoff, max_corr).
  *
  * SPDX-License-Identifier: MIT
  *
