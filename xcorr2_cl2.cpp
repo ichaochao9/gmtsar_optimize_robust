@@ -211,7 +211,7 @@ int main(int argc, char **argv) {
 
     // Startup sanity checks (config errors, reported before processing begins).
     if (xsearch < 1 || ysearch < 1) {
-        fprintf(stderr, "xcorr2_cl: xsearch/ysearch must be >= 1\n");
+        fprintf(stderr, "xcorr2_cl2: xsearch/ysearch must be >= 1\n");
         return 1;
     }
     // x_inc/y_inc below divide by (nxl+3) and (nyl+1); reject configs where
@@ -232,12 +232,12 @@ int main(int argc, char **argv) {
 
     std::ifstream f1(xcorr.m_path, std::ios::binary);
     if (!f1) {
-        fprintf(stderr, "xcorr2_cl: failed to open master SLC image %s\n", xcorr.m_path);
+        fprintf(stderr, "xcorr2_cl2: failed to open master SLC image %s\n", xcorr.m_path);
         return 1;
     }
     std::ifstream f2(xcorr.s_path, std::ios::binary);
     if (!f2) {
-        fprintf(stderr, "xcorr2_cl: failed to open slave SLC image %s\n", xcorr.s_path);
+        fprintf(stderr, "xcorr2_cl2: failed to open slave SLC image %s\n", xcorr.s_path);
         return 1;
     }
 
@@ -323,13 +323,13 @@ int main(int argc, char **argv) {
                     if (!warned_rowload) {
                         warned_rowload = true;
                         fprintf(stderr,
-                                "xcorr2_cl: warning: skipping patch: row-block load failed "
+                                "xcorr2_cl2: warning: skipping patch: row-block load failed "
                                 "(see earlier warning); writing max_corr=0.00 records\n");
                     }
                 } else if (!warned_unplaceable) {
                     warned_unplaceable = true;
                     fprintf(stderr,
-                            "xcorr2_cl: warning: correlation window (%d x %d) cannot be fully "
+                            "xcorr2_cl2: warning: correlation window (%d x %d) cannot be fully "
                             "placed in master (%d x %d) or slave (%d wide) image; "
                             "writing max_corr=0.00 records for affected patches\n",
                             nx_win, ny_win, xcorr.m_nx, xcorr.m_ny, xcorr.s_nx);
@@ -472,7 +472,7 @@ int main(int argc, char **argv) {
                         if (!warned_interp) {
                             warned_interp = true;
                             fprintf(stderr,
-                                    "xcorr2_cl: warning: sub-pixel window (%d x %d) incompatible "
+                                    "xcorr2_cl2: warning: sub-pixel window (%d x %d) incompatible "
                                     "with correlation surface (%d x %d); skipping interpolation\n",
                                     nx_corr2, ny_corr2, nx_corr, ny_corr);
                         }
