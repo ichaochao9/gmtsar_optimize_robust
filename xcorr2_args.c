@@ -148,7 +148,6 @@ void parse_opts(struct st_xcorr_args *xa, int argc, char **argv) {
         { "ysearch", required_argument, NULL, OPT_YSEARCH },
         { "interp", required_argument, NULL, OPT_INTERP },
         { "af", required_argument, NULL, OPT_DEVICE },
-        { "help", no_argument, NULL, OPT_HELP },
         { 0, 0, 0, 0 },
     };
 
