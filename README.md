@@ -1,140 +1,184 @@
-# Parallel xcorr programs for GMTSAR
+# Robust ArrayFire xcorr2 for GMTSAR (`xcorr2_cl2`)
 
-## Introduction
+This repository is an unofficial research fork of
+[cuihaoleo/gmtsar_optimize](https://github.com/cuihaoleo/gmtsar_optimize).
 
-In GMTSAR package, `xcorr` program is the main part of InSAR image registration. We apply parallel optimization to xcorr program of GMTSAR package. We provide two programs for different hardwares:
+It provides `xcorr2_cl2`, a robustness-oriented ArrayFire implementation of
+frequency-domain cross-correlation for GMTSAR SLC image registration.
 
-- `xcorr2` program is the multi-thread version
-- `xcorr2_cl`  program is the GPU accelerated version
+> Use `xcorr2_cl2` for the robust implementation maintained by this fork.
+> The original upstream source files are retained for attribution, history,
+> and supporting code.
 
+## Main improvements
 
-## Dependencies & Build
+Compared with the original ArrayFire implementation, `xcorr2_cl2` adds:
 
-The code is written in C (`xcorr2`) and C++ (`xcorr2_cl`). To build the programs, C/C++ development tools must be installed. GNU toolchain is preferred, which includes `gcc` and `g++` compilers, and `make` tools.
+- safer master and slave SLC input handling;
+- separate slave-image dimensions and 64-bit file offsets;
+- bounds checking for master and slave image windows;
+- zero filling for unavailable or unreadable SLC rows;
+- numerical guards for zero, NaN, and infinite values;
+- per-patch exception recovery instead of aborting the entire run;
+- periodic ArrayFire synchronization and device-memory cleanup.
 
-`xcorr2` depends on following libraries:
-- FFTW 3 (3.3.6 tested)
-- Glib 2 (2.52.3 tested)
+Detailed implementation notes are included at the beginning of
+[`xcorr2_cl2.cpp`](xcorr2_cl2.cpp).
 
-`xcorr2_cl` depends on following libraries:
-- ArrayFire (3.5.0 tested)
-- GPU drivers and GPGPU libraries (CUDA or OpenCL toolkits)
+## Status
 
-OS-specific building instructions are as follows.
+This code is currently provided as a research preview.
 
+The build script targets Linux systems with an ArrayFire installation
+containing `libaf.so`. It has not yet been systematically validated with every
+SAR sensor, ArrayFire version, or CUDA/OpenCL device.
 
-### Ubuntu 16.04 LTS
+Users should compare the resulting offsets with a trusted GMTSAR workflow
+before using the program for production processing.
 
-Install GNU toolchain:
+No precompiled binary or test SLC data are included.
 
-```bash
-apt-get install build-essential
-```
+## Requirements
 
-Install building dependencies of `xcorr2`:
+- Linux
+- GCC and G++
+- `pkg-config`
+- GLib 2 development files
+- ArrayFire with at least one available backend:
+  - CUDA
+  - OpenCL
+  - CPU
+- GMTSAR-compatible PRM and complex SLC files
 
-```bash
-apt-get install libglib2.0-dev libfftw3-dev
-```
+The original development environment used ArrayFire 3.8.3. Compatibility with
+other ArrayFire 3.x versions has not yet been systematically tested.
 
-Install building dependencies of `xcorr2_cl`:
-
-```bash
-apt-get install libarrayfire-unified-dev libarrayfire-opencl3
-```
-
-Then, `cd` into source directory and run `make` to build the binaries.
-
-```bash
-make xcorr2     # build xcorr2 only
-make xcorr2_cl  # build xcorr2_cl only
-make            # build all binaries
-```
-
-Now you should get executable `xcorr2` and/or `xcorr2_cl` binaries.
-
-To enable GPU acceleration, proper GPU drivers and OpenCL runtime libraries must be installed as well.
-
-For recent NVIDIA cards with proprietary driver installed, install NVIDIA OpenCL driver (or full CUDA toolkit):
-
-```bash
-apt-get install nvidia-opencl-icd-XXX
-# where XXX must be the same as the version of NVIDIA driver
-```
-
-For AMD/NVIDIA cards with open-source driver installed, install Mesa implementation of OpenCL:
+On Debian or Ubuntu, the basic compiler and GLib dependencies can be installed
+with:
 
 ```bash
-apt-get install mesa-opencl-icd
+sudo apt update
+sudo apt install build-essential pkg-config libglib2.0-dev
 ```
 
-### macOS (with Homebrew)
+ArrayFire and the required CUDA or OpenCL runtime must be installed separately.
 
-Following instructions assume that GMT5SAR and its dependencies has been installed. If not, please follow [GMTSAR's installation guide](http://gmt.soest.hawaii.edu/projects/gmt5sar/wiki).
+## Build
 
-Ensure pkg-config is installed:
+Download this repository or clone it:
 
 ```bash
-brew install pkg-config
+git clone https://github.com/ichaochao9/gmtsar_optimize_robust.git
+cd gmtsar_optimize_robust
 ```
 
-Install building dependencies of `xcorr2_cl`:
+Set `AF_PATH` to the ArrayFire installation prefix. The directory must contain:
+
+```text
+$AF_PATH/include
+$AF_PATH/lib/libaf.so
+```
+
+Alternatively, the shared library may be located under `$AF_PATH/lib64`.
+
+Build `xcorr2_cl2` with:
 
 ```bash
-brew install arrayfire
+AF_PATH=/opt/arrayfire bash bash_xcorr2_cl_compiler.sh
 ```
 
-Then, `cd` into source directory and run `make` to build the binaries.
+Replace `/opt/arrayfire` with the actual ArrayFire installation path on your
+computer.
 
-```bash
-make xcorr2     # build xcorr2 only
-make xcorr2_cl  # build xcorr2_cl only
-make            # build all binaries
+A successful build creates:
+
+```text
+xcorr2_cl2
 ```
 
-Now you should get executable `xcorr2` and/or `xcorr2_cl` binaries.
-
-Note: We don't have MacBook with discrete graphics card, so OpenCL version is not fully tested on macOS.
-
+in the repository directory.
 
 ## Usage
 
-`xcorr2` and `xcorr2_cl` provide exact the same arguments as GMTSAR `xcorr` program.
-
-For example, run it on ALOS SLC generated by GMTSAR:
+The output filename is a required third positional argument:
 
 ```bash
-xcorr2 IMG-HH-ALPSRP207600640-H1.0__A.PRM IMG-HH-ALPSRP227730640-H1.0__A.PRM -xsearch 64 -ysearch 64 -nx 32 -ny 64 -range_interp 2 -interp 16
+./xcorr2_cl2 master.PRM slave.PRM output.dat [options]
 ```
 
-`xcorr2` and `xcorr2_cl` is designed to be seamlessly integrated into GMTSAR package. To accelerate image registration in GMTSAR processing chain, you may simply replace original `xcorr` program with `xcorr2` or `xcorr2_cl`.
+Example using the CUDA backend:
 
-We also provide a script called `xcorr2_helper` to simplify the usage. To use it, build the binaries first and add the source directory to `PATH` enviroment variable:
-
-```
-export PATH=path/to/gmtsar_optimize:$PATH   # bash
-setenv PATH path/to/gmtsar_optimize\:$PATH  # csh
-```
-
-Then prepend `xcorr2_helper <profile>` to GMTSAR commands to enable parallel `xcorr` program, where `<profile>` can be `mt` (for multi-thread version) or `opencl` (for OpenCL GPU version). For example:
-
-```
-xcorr2_profile mt p2p_ALOS.csh IMG-HH-ALPSRP207600640-H1.0__A IMG-HH-ALPSRP227730640-H1.0__A config.alos.txt
-xcorr2_profile opencl p2p_ALOS.csh IMG-HH-ALPSRP207600640-H1.0__A IMG-HH-ALPSRP227730640-H1.0__A config.alos.txt
+```bash
+./xcorr2_cl2 master.PRM slave.PRM output.dat \
+  -af cuda \
+  -xsearch 64 \
+  -ysearch 64 \
+  -nx 32 \
+  -ny 64 \
+  -range_interp 2 \
+  -interp 16
 ```
 
-### More examples
+Other ArrayFire backends may be selected with:
 
-Use multi-thread version `xcorr2` on `ENVI_Baja_EQ` dataset:
-```
-xcorr2_helper p2p_ENVI.csh ENV1_2_084_2943_2961_42222 ENV1_2_084_2943_2961_42723 config.envi.txt
+```bash
+-af opencl
 ```
 
-Use OpenCL version `xcorr2_cl` on `ALOS2_SCAN_SSAF` dataset:
+or:
+
+```bash
+-af cpu
 ```
-xcorr2_helper opencl p2p_ALOS2_SCAN_SLC.csh IMG-HH-ALOS2022872950-141025-WBDR1.1__D IMG-HH-ALOS2029082950-141206-WBDR1.1__D config.alos2.scan.txt 1
-xcorr2_helper opencl p2p_ALOS2_SCAN_SLC.csh IMG-HH-ALOS2022872950-141025-WBDR1.1__D IMG-HH-ALOS2029082950-141206-WBDR1.1__D config.alos2.scan.txt 2
-xcorr2_helper opencl p2p_ALOS2_SCAN_SLC.csh IMG-HH-ALOS2022872950-141025-WBDR1.1__D IMG-HH-ALOS2029082950-141206-WBDR1.1__D config.alos2.scan.txt 3
-xcorr2_helper opencl p2p_ALOS2_SCAN_SLC.csh IMG-HH-ALOS2022872950-141025-WBDR1.1__D IMG-HH-ALOS2029082950-141206-WBDR1.1__D config.alos2.scan.txt 4
-xcorr2_helper opencl p2p_ALOS2_SCAN_SLC.csh IMG-HH-ALOS2022872950-141025-WBDR1.1__D IMG-HH-ALOS2029082950-141206-WBDR1.1__D config.alos2.scan.txt 5
+
+Display the program help with:
+
+```bash
+./xcorr2_cl2 -help
 ```
+
+## Output
+
+Each successful or recovered patch writes one ASCII record containing:
+
+```text
+loc_x  xoff  loc_y  yoff  max_corr
+```
+
+The source-code output format is:
+
+```text
+%d %6.3lf %d %6.3lf %6.2lf
+```
+
+The output can subsequently be processed using the appropriate GMTSAR offset
+fitting workflow, such as `fitoffset.csh`.
+
+## Known limitation
+
+The region-selection options `-x0`, `-x1`, `-y0`, and `-y1` are not implemented
+in this preview release. They are explicitly rejected instead of being silently
+ignored.
+
+## Attribution and citation
+
+This work builds on the original MIT-licensed parallel registration
+implementation developed by Hao Cui and Xianjie Zha:
+
+> Cui, H., & Zha, X. (2018). Parallel Image Registration Implementations for
+> GMTSAR Package. *Seismological Research Letters*, 89(3), 1129–1136.
+> https://doi.org/10.1785/0220170171
+
+Original project:
+
+- https://github.com/cuihaoleo/gmtsar_optimize
+
+Please cite Cui and Zha (2018) when using this implementation in academic work.
+
+This repository is an independent research fork and is not an official GMTSAR
+release.
+
+## License
+
+This repository retains the original MIT License and copyright notice.
+See [`LICENSE`](LICENSE) for details.
