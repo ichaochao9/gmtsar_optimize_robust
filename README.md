@@ -106,7 +106,7 @@ The output filename is a required third positional argument:
 ./xcorr2_cl2 master.PRM slave.PRM output.dat [options]
 ```
 
-Example using the CUDA backend:
+Example:
 
 ```bash
 ./xcorr2_cl2 master.PRM slave.PRM output.dat \
